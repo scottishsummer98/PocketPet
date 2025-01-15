@@ -36,7 +36,6 @@ const PetSelectionScreen = () => {
 
   return (
     <View style={styles.container}>
-      {/* Hide the pet carousel after selecting a pet */}
       {!selectedPet && (
         <ScrollView
           horizontal
@@ -59,7 +58,6 @@ const PetSelectionScreen = () => {
         </ScrollView>
       )}
 
-      {/* Show selected pet and name input */}
       {selectedPet && (
         <View style={styles.selectionContainer}>
           <Image source={selectedPet.source} style={styles.selectedAvatar} />
