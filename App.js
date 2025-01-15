@@ -16,7 +16,7 @@ export default function App() {
           component={HomeScreen}
           options={{ title: "PocketPet" }}
         />
-        {/* <Stack.Screen
+        <Stack.Screen
           name="PetSelectionScreen"
           component={PetSelectionScreen}
           options={{ title: "Select a Pet" }}
@@ -26,7 +26,7 @@ export default function App() {
           name="PetScreen"
           component={PetScreen}
           options={{ title: "Your Pet" }}
-        /> */}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

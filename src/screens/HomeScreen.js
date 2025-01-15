@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, Image, Button, StyleSheet } from "react-native";
 
-const HomeScreen = () => {
+const HomeScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Image
