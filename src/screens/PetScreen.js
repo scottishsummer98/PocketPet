@@ -1,11 +1,7 @@
-import React from 'react'
+import React from "react";
 
 const PetScreen = () => {
-  return (
-    <div>
-      PetScreen
-    </div>
-  )
-}
+  return <div>PetScreen</div>;
+};
 
-export default PetScreen
+export default PetScreen;

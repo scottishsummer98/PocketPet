@@ -4,6 +4,10 @@ import { View, Text, Image, Button, StyleSheet } from "react-native";
 const HomeScreen = () => {
   return (
     <View style={styles.container}>
+      <Image
+        source={require("../../assets/PocketPetLogo.png")}
+        style={styles.logo}
+      />
       <Text style={styles.title}>Welcome to PocketPet!</Text>
       <Button
         title="Select Your Pet"
