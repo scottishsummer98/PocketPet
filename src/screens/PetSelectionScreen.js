@@ -10,20 +10,31 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { connect } from "react-redux";
-import { selectPet } from "../redux/actionCreators";
+import { selectPet, anonAuth } from "../redux/actionCreators";
 
-const PetSelectionScreen = ({ petImages, dispatch }) => {
+const PetSelectionScreen = (props) => {
   const navigation = useNavigation();
   const [selectedPet, setSelectedPet] = useState(null);
   const [petName, setPetName] = useState("");
 
+  const { petImages } = props;
+
+  if (!petImages) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>Error: Pet images not found.</Text>
+      </View>
+    );
+  }
+
   const handleSelectPet = (petType) => {
-    setSelectedPet({ type: petType, source: petImages[petType].greet });
+    setSelectedPet({ type: petType, source: petImages[petType]?.greet });
   };
 
   const handleConfirmSelection = () => {
     if (petName && selectedPet) {
-      dispatch(selectPet(selectedPet.type, petName));
+      props.selectPet(selectedPet.type, petName);
+      props.anonAuth();
       navigation.navigate("PetScreen");
     }
   };
@@ -42,7 +53,7 @@ const PetSelectionScreen = ({ petImages, dispatch }) => {
               onPress={() => handleSelectPet(petType)}
               style={styles.carouselItem}
             >
-              <Image source={petImages[petType].greet} style={styles.avatar} />
+              <Image source={petImages[petType]?.greet} style={styles.avatar} />
               <Button
                 title={petType}
                 onPress={() => handleSelectPet(petType)}
@@ -113,10 +124,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
   },
+  errorText: {
+    fontSize: 18,
+    color: "red",
+  },
 });
 
 const mapStateToProps = (state) => ({
   petImages: state.pet.petImages,
 });
 
-export default connect(mapStateToProps)(PetSelectionScreen);
+const mapDispatchToProps = (dispatch) => ({
+  anonAuth: () => dispatch(anonAuth()),
+  selectPet: (petType, petName) => dispatch(selectPet(petType, petName)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(PetSelectionScreen);

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,8 +6,12 @@ import {
   TouchableOpacity,
   Button,
   StyleSheet,
+  Alert,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { connect } from "react-redux";
+import { createOrUpdatePetStats, resetPet } from "../redux/actionCreators";
+import { playSound } from "../utils/playSound";
 
 const PetScreen = ({
   petType,
@@ -16,14 +20,58 @@ const PetScreen = ({
   happiness,
   isAlive,
   petImages,
+  createOrUpdatePetStats,
+  resetPet,
 }) => {
-  if (!petType || !petName) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>No pet selected. Please go back.</Text>
-      </View>
+  const [currentImage, setCurrentImage] = useState(petImages[petType]?.greet);
+  const navigation = useNavigation();
+  useEffect(() => {
+    if (hunger <= 0 || happiness <= 0) {
+      createOrUpdatePetStats(0, 0, false); // Update the stats when the pet dies
+      setCurrentImage(require("../../assets/pets/Pet_dead.gif"));
+    }
+  }, [hunger, happiness, createOrUpdatePetStats]);
+
+  const getRandomTrickImage = () => {
+    const tricks = petImages[petType]?.tricks;
+    return tricks ? tricks[Math.floor(Math.random() * tricks.length)] : null;
+  };
+
+  const greetPet = () => {
+    playSound(petType, "greet");
+    setCurrentImage(petImages[petType]?.greet);
+    Alert.alert(`Hello, ${petName}!`);
+  };
+
+  const feedPet = () => {
+    createOrUpdatePetStats(Math.min(hunger + 10, 100), happiness, isAlive);
+    setCurrentImage(petImages[petType]?.feed);
+    playSound(petType, "feed");
+  };
+
+  const playWithPet = () => {
+    createOrUpdatePetStats(hunger, Math.min(happiness + 5, 100), isAlive);
+    setCurrentImage(petImages[petType]?.play);
+    const sounds = ["greet", "trick"];
+    const randomSound = sounds[Math.floor(Math.random() * sounds.length)];
+    playSound(petType, randomSound);
+  };
+
+  const performTrick = () => {
+    createOrUpdatePetStats(
+      Math.max(hunger - 10, 0),
+      Math.max(happiness - 5, 0),
+      isAlive
     );
-  }
+    setCurrentImage(getRandomTrickImage());
+    playSound(petType, "trick");
+    Alert.alert(`${petName} is performing a trick!`);
+  };
+
+  const handleRestart = () => {
+    resetPet();
+    navigation.navigate("HomeScreen");
+  };
 
   return (
     <View style={styles.container}>
@@ -32,23 +80,20 @@ const PetScreen = ({
           ? `${petName} the ${petType}`
           : `${petName} the ${petType} died`}
       </Text>
-      <Image
-        source={petImages[petType]?.greet} // Safely access pet image
-        style={styles.petImage}
-      />
+      <Image source={currentImage} style={styles.petImage} />
 
       {isAlive && (
         <View style={styles.actionsContainer}>
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity onPress={greetPet} style={styles.actionButton}>
             <Text style={styles.buttonText}>Greet</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity onPress={feedPet} style={styles.actionButton}>
             <Text style={styles.buttonText}>Feed</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity onPress={playWithPet} style={styles.actionButton}>
             <Text style={styles.buttonText}>Play</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity onPress={performTrick} style={styles.actionButton}>
             <Text style={styles.buttonText}>Trick</Text>
           </TouchableOpacity>
         </View>
@@ -63,7 +108,7 @@ const PetScreen = ({
 
       {!isAlive && (
         <View style={styles.restartButtonContainer}>
-          <Button color={"white"} title="Restart" onPress={() => {}} />
+          <Button color={"white"} title="Restart" onPress={handleRestart} />
         </View>
       )}
     </View>
@@ -112,4 +157,9 @@ const mapStateToProps = (state) => ({
   petImages: state.pet.petImages,
 });
 
-export default connect(mapStateToProps)(PetScreen);
+const mapDispatchToProps = {
+  createOrUpdatePetStats,
+  resetPet,
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(PetScreen);

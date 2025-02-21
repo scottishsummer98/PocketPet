@@ -1,15 +1,73 @@
 import * as actionTypes from "./actionTypes";
+import { API_KEY } from "./apiKey";
+import { baseUrl } from "./baseURL";
+import axios from "axios";
 
-// export const greetPet = () => ({ type: actionTypes.GREET_PET });
-// export const feedPet = () => ({ type: actionTypes.FEED_PET });
-// export const playPet = () => ({ type: actionTypes.PLAY_PET });
-// export const trickPet = () => ({ type: actionTypes.TRICK_PET });
+const authSuccess = (idToken, localId) => {
+  return {
+    type: actionTypes.AUTH_SUCCESS,
+    payload: {
+      idToken: idToken,
+      localId: localId,
+    },
+  };
+};
+
+export const anonAuth = () => (dispatch) => {
+  let authURL =
+    "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=";
+  axios
+    .post(authURL + API_KEY)
+    .then((res) => {
+      dispatch(authSuccess(res.data.idToken, res.data.localId));
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
+
 export const selectPet = (petType, petName) => ({
   type: actionTypes.SELECT_PET,
   payload: { petType, petName },
 });
-// export const updatePetStats = (hunger, happiness, isAlive) => ({
-//   type: actionTypes.UPDATE_PET_STATS,
-//   payload: { hunger, happiness, isAlive },
-// });
-// export const resetPet = () => ({ type: actionTypes.RESET_PET });
+
+export const createOrUpdatePetStats = (hunger, happiness, isAlive) => {
+  return (dispatch, getState) => {
+    const state = getState();
+    const userId = state.auth.localId;
+    if (!userId) return;
+
+    axios
+      .get(`${baseUrl}/pets/${userId}/petStats`)
+      .then((response) => {
+        if (response.status === 200) {
+          return axios.put(
+            `${baseUrl}/pets/${userId}/petStats`,
+            { hunger, happiness, isAlive },
+            { headers: { "Content-Type": "application/json" } }
+          );
+        } else {
+          return axios.post(
+            `${baseUrl}/pets/${userId}/petStats`,
+            { hunger, happiness, isAlive },
+            { headers: { "Content-Type": "application/json" } }
+          );
+        }
+      })
+      .then((updateResponse) => {
+        if (updateResponse.status === 200 || updateResponse.status === 201) {
+          dispatch({
+            type: CREATE_OR_UPDATE_PET_STATS,
+            payload: { hunger, happiness, isAlive },
+          });
+        }
+      })
+      .catch((error) => {
+        console.error("Error creating/updating pet stats:", error);
+      });
+  };
+};
+
+export const resetPet = () => ({
+  type: actionTypes.RESET_PET,
+});

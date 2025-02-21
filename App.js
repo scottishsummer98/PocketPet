@@ -15,7 +15,7 @@ export default function App() {
       <NavigationContainer>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen
-            name="Home"
+            name="HomeScreen"
             component={HomeScreen}
             options={{ title: "PocketPet" }}
           />
