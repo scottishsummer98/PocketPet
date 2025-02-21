@@ -1,6 +1,6 @@
 import * as actionTypes from "./actionTypes";
 import axios from "axios";
-import { baseUrl } from "./baseURL";
+import { baseUrl } from "./baseUrl";
 import { API_KEY } from "./apiKey";
 
 const authSuccess = (idToken, localId) => {
