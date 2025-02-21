@@ -1,123 +1,29 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   View,
   Text,
   Image,
   TouchableOpacity,
-  Alert,
   Button,
   StyleSheet,
 } from "react-native";
-import { playSound } from "../utils/playSound";
+import { connect } from "react-redux";
 
-const petImages = {
-  Cat: {
-    greet: require("../../assets/pets/Cat_greet.gif"),
-    feed: require("../../assets/pets/Cat_feed.gif"),
-    play: require("../../assets/pets/Cat_play.gif"),
-    tricks: [
-      require("../../assets/pets/Cat_trick1.gif"),
-      require("../../assets/pets/Cat_trick2.gif"),
-      require("../../assets/pets/Cat_trick3.gif"),
-    ],
-  },
-  Dog: {
-    greet: require("../../assets/pets/Dog_greet.gif"),
-    feed: require("../../assets/pets/Dog_feed.gif"),
-    play: require("../../assets/pets/Dog_play.gif"),
-    tricks: [
-      require("../../assets/pets/Dog_trick1.gif"),
-      require("../../assets/pets/Dog_trick2.gif"),
-      require("../../assets/pets/Dog_trick3.gif"),
-    ],
-  },
-  Parrot: {
-    greet: require("../../assets/pets/Parrot_greet.gif"),
-    feed: require("../../assets/pets/Parrot_feed.gif"),
-    play: require("../../assets/pets/Parrot_play.gif"),
-    tricks: [
-      require("../../assets/pets/Parrot_trick1.gif"),
-      require("../../assets/pets/Parrot_trick2.gif"),
-      require("../../assets/pets/Parrot_trick3.gif"),
-    ],
-  },
-  Shark: {
-    greet: require("../../assets/pets/Shark_greet.gif"),
-    feed: require("../../assets/pets/Shark_feed.gif"),
-    play: require("../../assets/pets/Shark_play.gif"),
-    tricks: [
-      require("../../assets/pets/Shark_trick1.gif"),
-      require("../../assets/pets/Shark_trick2.gif"),
-      require("../../assets/pets/Shark_trick3.gif"),
-    ],
-  },
-  Monkey: {
-    greet: require("../../assets/pets/Monkey_greet.gif"),
-    feed: require("../../assets/pets/Monkey_feed.gif"),
-    play: require("../../assets/pets/Monkey_play.gif"),
-    tricks: [
-      require("../../assets/pets/Monkey_trick1.gif"),
-      require("../../assets/pets/Monkey_trick2.gif"),
-      require("../../assets/pets/Monkey_trick3.gif"),
-    ],
-  },
-};
-
-const PetScreen = ({ route, navigation }) => {
-  const { petType, petName } = route.params;
-
-  const [isAlive, setIsAlive] = useState(true);
-  const [hunger, setHunger] = useState(50);
-  const [happiness, setHappiness] = useState(50);
-  const [currentImage, setCurrentImage] = useState(petImages[petType].greet); // Set initial image to "greet"
-
-  const getRandomTrickImage = () => {
-    const tricks = petImages[petType].tricks;
-    const randomIndex = Math.floor(Math.random() * tricks.length);
-    return tricks[randomIndex];
-  };
-
-  useEffect(() => {
-    if (hunger <= 0 || happiness <= 0) {
-      setIsAlive(false);
-      setCurrentImage(require("../../assets/pets/Pet_dead.gif"));
-    }
-  }, [hunger, happiness]);
-
-  const greetPet = () => {
-    playSound(petType, "greet");
-    setCurrentImage(petImages[petType].greet);
-    Alert.alert(`Hello, ${petName}!`);
-  };
-
-  const feedPet = () => {
-    setHunger((prev) => Math.min(Math.max(prev + 10, 0), 100));
-    setCurrentImage(petImages[petType].feed);
-    playSound(petType, "feed");
-  };
-
-  const performTrick = () => {
-    setHappiness((prev) => Math.max(prev - 5, 0));
-    setHunger((prev) => Math.max(prev - 10, 0));
-    const trickImage = getRandomTrickImage();
-    setCurrentImage(trickImage);
-    playSound(petType, "trick");
-    Alert.alert(`${petName} is performing a trick!`);
-  };
-
-  const playWithPet = () => {
-    setHappiness((prev) => Math.min(Math.max(prev + 5, 0), 100));
-    setCurrentImage(petImages[petType].play);
-    playSound(petType, "greet");
-  };
-
-  const handleRestart = () => {
-    setIsAlive(true);
-    setHunger(50);
-    setHappiness(50);
-    setCurrentImage(petImages[petType].greet);
-    navigation.navigate("Home");
-  };
+const PetScreen = ({
+  petType,
+  petName,
+  hunger,
+  happiness,
+  isAlive,
+  petImages,
+}) => {
+  if (!petType || !petName) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>No pet selected. Please go back.</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -126,42 +32,23 @@ const PetScreen = ({ route, navigation }) => {
           ? `${petName} the ${petType}`
           : `${petName} the ${petType} died`}
       </Text>
-
       <Image
-        source={
-          isAlive ? currentImage : require("../../assets/pets/Pet_dead.gif")
-        }
+        source={petImages[petType]?.greet} // Safely access pet image
         style={styles.petImage}
       />
 
       {isAlive && (
         <View style={styles.actionsContainer}>
-          <TouchableOpacity
-            onPress={greetPet}
-            style={styles.actionButton}
-            disabled={!isAlive}
-          >
+          <TouchableOpacity style={styles.actionButton}>
             <Text style={styles.buttonText}>Greet</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={feedPet}
-            style={styles.actionButton}
-            disabled={!isAlive}
-          >
+          <TouchableOpacity style={styles.actionButton}>
             <Text style={styles.buttonText}>Feed</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={playWithPet}
-            style={styles.actionButton}
-            disabled={!isAlive}
-          >
+          <TouchableOpacity style={styles.actionButton}>
             <Text style={styles.buttonText}>Play</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={performTrick}
-            style={styles.actionButton}
-            disabled={!isAlive}
-          >
+          <TouchableOpacity style={styles.actionButton}>
             <Text style={styles.buttonText}>Trick</Text>
           </TouchableOpacity>
         </View>
@@ -176,7 +63,7 @@ const PetScreen = ({ route, navigation }) => {
 
       {!isAlive && (
         <View style={styles.restartButtonContainer}>
-          <Button color={"white"} title="Restart" onPress={handleRestart} />
+          <Button color={"white"} title="Restart" onPress={() => {}} />
         </View>
       )}
     </View>
@@ -210,6 +97,19 @@ const styles = StyleSheet.create({
   petInfoContainer: {
     alignItems: "center",
   },
+  errorText: {
+    fontSize: 18,
+    color: "red",
+  },
 });
 
-export default PetScreen;
+const mapStateToProps = (state) => ({
+  petType: state.pet.petType,
+  petName: state.pet.petName,
+  hunger: state.pet.hunger,
+  happiness: state.pet.happiness,
+  isAlive: state.pet.isAlive,
+  petImages: state.pet.petImages,
+});
+
+export default connect(mapStateToProps)(PetScreen);

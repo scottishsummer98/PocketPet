@@ -9,28 +9,22 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { connect } from "react-redux";
+import { selectPet } from "../redux/actionCreators";
 
-const petAvatars = [
-  { type: "Cat", source: require("../../assets/pets/Cat_greet.gif") },
-  { type: "Dog", source: require("../../assets/pets/Dog_greet.gif") },
-  { type: "Parrot", source: require("../../assets/pets/Parrot_greet.gif") },
-  { type: "Shark", source: require("../../assets/pets/Shark_greet.gif") },
-  { type: "Monkey", source: require("../../assets/pets/Monkey_greet.gif") },
-];
-
-const PetSelectionScreen = () => {
+const PetSelectionScreen = ({ petImages, dispatch }) => {
   const navigation = useNavigation();
   const [selectedPet, setSelectedPet] = useState(null);
   const [petName, setPetName] = useState("");
 
   const handleSelectPet = (petType) => {
-    const pet = petAvatars.find((pet) => pet.type === petType);
-    setSelectedPet(pet);
+    setSelectedPet({ type: petType, source: petImages[petType].greet });
   };
 
   const handleConfirmSelection = () => {
     if (petName && selectedPet) {
-      navigation.navigate("PetScreen", { petType: selectedPet.type, petName });
+      dispatch(selectPet(selectedPet.type, petName));
+      navigation.navigate("PetScreen");
     }
   };
 
@@ -42,16 +36,16 @@ const PetSelectionScreen = () => {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.carouselContainer}
         >
-          {petAvatars.map((item, index) => (
+          {Object.keys(petImages).map((petType, index) => (
             <TouchableOpacity
               key={index}
-              onPress={() => handleSelectPet(item.type)}
+              onPress={() => handleSelectPet(petType)}
               style={styles.carouselItem}
             >
-              <Image source={item.source} style={styles.avatar} />
+              <Image source={petImages[petType].greet} style={styles.avatar} />
               <Button
-                title={item.type}
-                onPress={() => handleSelectPet(item.type)}
+                title={petType}
+                onPress={() => handleSelectPet(petType)}
               />
             </TouchableOpacity>
           ))}
@@ -121,4 +115,8 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PetSelectionScreen;
+const mapStateToProps = (state) => ({
+  petImages: state.pet.petImages,
+});
+
+export default connect(mapStateToProps)(PetSelectionScreen);
