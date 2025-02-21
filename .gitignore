@@ -3,6 +3,10 @@
 # dependencies
 node_modules/
 
+#apiandurl
+src/redux/baseUrl.js
+src/redux/apiKey.js
+
 # Expo
 .expo/
 dist/
