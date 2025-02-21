@@ -1,6 +1,6 @@
 import * as actionTypes from "./actionTypes";
 import { API_KEY } from "./apiKey";
-import { baseURL } from "./baseUrl";
+import { baseUrl } from "./baseUrl";
 import axios from "axios";
 
 const authSuccess = (idToken, localId) => {
@@ -38,17 +38,17 @@ export const createOrUpdatePetStats = (hunger, happiness, isAlive) => {
     if (!userId) return;
 
     axios
-      .get(`${baseURL}/pets/${userId}/petStats`)
+      .get(`${baseUrl}/pets/${userId}/petStats`)
       .then((response) => {
         if (response.status === 200) {
           return axios.put(
-            `${baseURL}/pets/${userId}/petStats`,
+            `${baseUrl}/pets/${userId}/petStats`,
             { hunger, happiness, isAlive },
             { headers: { "Content-Type": "application/json" } }
           );
         } else {
           return axios.post(
-            `${baseURL}/pets/${userId}/petStats`,
+            `${baseUrl}/pets/${userId}/petStats`,
             { hunger, happiness, isAlive },
             { headers: { "Content-Type": "application/json" } }
           );

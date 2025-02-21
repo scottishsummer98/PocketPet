@@ -3,7 +3,7 @@
 # dependencies
 node_modules/
 
-#apiandurl
+#apikeyandbaseurl
 src/redux/baseUrl.js
 src/redux/apiKey.js
 
