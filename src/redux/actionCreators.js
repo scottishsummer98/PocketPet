@@ -1,5 +1,7 @@
 import * as actionTypes from "./actionTypes";
 import axios from "axios";
+import { baseUrl } from "./baseURL";
+import { API_KEY } from "./apiKey";
 
 const authSuccess = (idToken, localId) => {
   return {
@@ -14,7 +16,6 @@ const authSuccess = (idToken, localId) => {
 export const anonAuth = () => (dispatch) => {
   let authURL =
     "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=";
-  const API_KEY = "AIzaSyCaKO5BgIZCmlw00mTEMZfpiiYkPfbLGgs";
   axios
     .post(authURL + API_KEY)
     .then((res) => {
@@ -35,8 +36,6 @@ export const createOrUpdatePetStats = (hunger, happiness, isAlive) => {
     const state = getState();
     const userId = state.auth.localId;
     if (!userId) return;
-    const baseUrl =
-      "https://pocketpet-34148-default-rtdb.asia-southeast1.firebasedatabase.app/";
     axios
       .get(`${baseUrl}/pets/${userId}/petStats`)
       .then((response) => {
