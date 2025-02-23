@@ -8,69 +8,78 @@ import {
   StyleSheet,
   Alert,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
 import { connect } from "react-redux";
-import { createOrUpdatePetStats, resetPet } from "../redux/actionCreators";
 import { playSound } from "../utils/playSound";
+import { updatePetStats, resetPet } from "../redux/actionCreators";
 
-const PetScreen = ({
-  petType,
-  petName,
-  hunger,
-  happiness,
-  isAlive,
-  petImages,
-  createOrUpdatePetStats,
-  resetPet,
-}) => {
-  const [currentImage, setCurrentImage] = useState(petImages[petType]?.greet);
-  const navigation = useNavigation();
+const mapStateToProps = (state) => ({
+  auth: state.auth,
+  pet: state.pet,
+});
+
+const mapDispatchToProps = (dispatch) => ({
+  updatePetStats: (hunger, happiness, isAlive) =>
+    dispatch(updatePetStats(hunger, happiness, isAlive)),
+  resetPet: () => dispatch(resetPet()),
+});
+
+const PetScreen = (props) => {
+  const [currentImage, setCurrentImage] = useState(
+    props.pet.petImages[props.pet.petType]?.greet
+  );
+
+  const { hunger, happiness, isAlive, petType, petName } = props.pet;
+  useEffect(() => {
+    setCurrentImage(props.pet.petImages[props.pet.petType]?.greet);
+  }, [props.pet.petType]);
+
   useEffect(() => {
     if (hunger <= 0 || happiness <= 0) {
-      createOrUpdatePetStats(0, 0, false); // Update the stats when the pet dies
+      props.updatePetStats(0, 0, false);
       setCurrentImage(require("../../assets/pets/Pet_dead.gif"));
     }
-  }, [hunger, happiness, createOrUpdatePetStats]);
+  }, [hunger, happiness, isAlive, props.updatePetStats]);
+
+  useEffect(() => {
+    if (isAlive !== undefined) {
+      props.updatePetStats(hunger, happiness, isAlive);
+    }
+  }, [hunger, happiness, isAlive]);
 
   const getRandomTrickImage = () => {
-    const tricks = petImages[petType]?.tricks;
+    const tricks = props.pet.petImages[petType]?.tricks;
     return tricks ? tricks[Math.floor(Math.random() * tricks.length)] : null;
   };
 
   const greetPet = () => {
     playSound(petType, "greet");
-    setCurrentImage(petImages[petType]?.greet);
+    setCurrentImage(props.pet.petImages[petType]?.greet);
     Alert.alert(`Hello, ${petName}!`);
   };
 
   const feedPet = () => {
-    createOrUpdatePetStats(Math.min(hunger + 10, 100), happiness, isAlive);
-    setCurrentImage(petImages[petType]?.feed);
+    const newHunger = Math.min(hunger + 10, 100);
+    props.updatePetStats(newHunger, happiness, isAlive);
+    setCurrentImage(props.pet.petImages[petType]?.feed);
     playSound(petType, "feed");
   };
 
   const playWithPet = () => {
-    createOrUpdatePetStats(hunger, Math.min(happiness + 5, 100), isAlive);
-    setCurrentImage(petImages[petType]?.play);
+    const newHappiness = Math.min(happiness + 5, 100);
+    props.updatePetStats(hunger, newHappiness, isAlive);
+    setCurrentImage(props.pet.petImages[petType]?.play);
     const sounds = ["greet", "trick"];
     const randomSound = sounds[Math.floor(Math.random() * sounds.length)];
     playSound(petType, randomSound);
   };
 
   const performTrick = () => {
-    createOrUpdatePetStats(
-      Math.max(hunger - 10, 0),
-      Math.max(happiness - 5, 0),
-      isAlive
-    );
+    const newHunger = Math.max(hunger - 10, 0);
+    const newHappiness = Math.max(happiness - 5, 0);
+    props.updatePetStats(newHunger, newHappiness, isAlive);
     setCurrentImage(getRandomTrickImage());
     playSound(petType, "trick");
     Alert.alert(`${petName} is performing a trick!`);
-  };
-
-  const handleRestart = () => {
-    resetPet();
-    navigation.navigate("HomeScreen");
   };
 
   return (
@@ -108,7 +117,7 @@ const PetScreen = ({
 
       {!isAlive && (
         <View style={styles.restartButtonContainer}>
-          <Button color={"white"} title="Restart" onPress={handleRestart} />
+          <Button color={"white"} title="Restart" onPress={props.resetPet} />
         </View>
       )}
     </View>
@@ -147,19 +156,5 @@ const styles = StyleSheet.create({
     color: "red",
   },
 });
-
-const mapStateToProps = (state) => ({
-  petType: state.pet.petType,
-  petName: state.pet.petName,
-  hunger: state.pet.hunger,
-  happiness: state.pet.happiness,
-  isAlive: state.pet.isAlive,
-  petImages: state.pet.petImages,
-});
-
-const mapDispatchToProps = {
-  createOrUpdatePetStats,
-  resetPet,
-};
 
 export default connect(mapStateToProps, mapDispatchToProps)(PetScreen);

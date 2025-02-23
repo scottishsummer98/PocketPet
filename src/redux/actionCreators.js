@@ -13,60 +13,90 @@ const authSuccess = (idToken, localId) => {
   };
 };
 
-export const anonAuth = () => (dispatch) => {
-  let authURL =
-    "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=";
-  axios
-    .post(authURL + API_KEY)
-    .then((res) => {
-      dispatch(authSuccess(res.data.idToken, res.data.localId));
-    })
-    .catch((err) => {
-      console.log(err);
+const refreshIdToken = async (refreshToken) => {
+  const refreshUrl = `https://securetoken.googleapis.com/v1/token?key=${API_KEY}`;
+  try {
+    const response = await axios.post(refreshUrl, {
+      grant_type: "refresh_token",
+      refresh_token: refreshToken,
     });
+    return response.data.id_token;
+  } catch (error) {
+    console.error("Error refreshing token:", error);
+    throw error;
+  }
 };
 
-export const selectPet = (petType, petName) => ({
-  type: actionTypes.SELECT_PET,
-  payload: { petType, petName },
-});
+export const anonAuth = () => async (dispatch) => {
+  const authURL =
+    "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=";
 
-export const createOrUpdatePetStats = (hunger, happiness, isAlive) => {
+  try {
+    const res = await axios.post(authURL + API_KEY);
+    dispatch(authSuccess(res.data.idToken, res.data.localId));
+
+    const refreshToken = res.data.refreshToken;
+    setInterval(async () => {
+      try {
+        const newIdToken = await refreshIdToken(refreshToken);
+        dispatch(authSuccess(newIdToken, res.data.localId));
+      } catch (error) {
+        console.error("Error refreshing token:", error);
+      }
+    }, 3500 * 1000);
+
+    return true;
+  } catch (err) {
+    console.error("Error during authentication:", err);
+    return false;
+  }
+};
+
+export const createPetStats = (petType, petName) => {
   return (dispatch, getState) => {
-    const state = getState();
-    const userId = state.auth.localId;
-    if (!userId) return;
+    let hunger = getState().pet.hunger;
+    let happiness = getState().pet.happiness;
+    let isAlive = getState().pet.isAlive;
+    const userId = getState().auth?.localId;
+
     axios
-      .get(`${baseUrl}/pets/${userId}/petStats`)
+      .put(
+        `${baseUrl}/${userId}/petStats.json`,
+        { petType, petName, hunger, happiness, isAlive },
+        { headers: { "Content-Type": "application/json" } }
+      )
       .then((response) => {
-        if (response.status === 200) {
-          return axios.put(
-            `${baseUrl}/pets/${userId}/petStats`,
-            { hunger, happiness, isAlive },
-            { headers: { "Content-Type": "application/json" } }
-          );
-        } else {
-          return axios.post(
-            `${baseUrl}/pets/${userId}/petStats`,
-            { hunger, happiness, isAlive },
-            { headers: { "Content-Type": "application/json" } }
-          );
-        }
-      })
-      .then((updateResponse) => {
-        if (updateResponse.status === 200 || updateResponse.status === 201) {
-          dispatch({
-            type: CREATE_OR_UPDATE_PET_STATS,
-            payload: { hunger, happiness, isAlive },
-          });
-        }
+        dispatch({
+          type: actionTypes.CREATE_PET_STATS,
+          payload: { petType, petName, hunger, happiness, isAlive },
+        });
       })
       .catch((error) => {
-        console.error("Error creating/updating pet stats:", error);
+        console.error("Error updating pet stats:", error);
       });
   };
 };
+export const updatePetStats = (hunger, happiness, isAlive) => {
+  return (dispatch, getState) => {
+    const userId = getState().auth?.localId;
 
+    axios
+      .patch(
+        `${baseUrl}/${userId}/petStats.json`,
+        { hunger, happiness, isAlive },
+        { headers: { "Content-Type": "application/json" } }
+      )
+      .then((response) => {
+        dispatch({
+          type: actionTypes.UPDATE_PET_STATS,
+          payload: { hunger, happiness, isAlive },
+        });
+      })
+      .catch((error) => {
+        console.error("Error updating pet stats:", error);
+      });
+  };
+};
 export const resetPet = () => ({
   type: actionTypes.RESET_PET,
 });

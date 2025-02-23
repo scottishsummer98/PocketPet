@@ -7,53 +7,65 @@ import {
   TextInput,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
 import { connect } from "react-redux";
-import { selectPet, anonAuth } from "../redux/actionCreators";
+import { createPetStats, anonAuth } from "../redux/actionCreators";
+
+const mapStateToProps = (state) => ({
+  auth: state.auth,
+  pet: state.pet,
+});
+
+const mapDispatchToProps = (dispatch) => ({
+  anonAuth: () => dispatch(anonAuth()),
+  createPetStats: (petType, petName) =>
+    dispatch(createPetStats(petType, petName)),
+});
 
 const PetSelectionScreen = (props) => {
-  const navigation = useNavigation();
   const [selectedPet, setSelectedPet] = useState(null);
   const [petName, setPetName] = useState("");
-
-  const { petImages } = props;
-
-  if (!petImages) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>Error: Pet images not found.</Text>
-      </View>
-    );
-  }
+  const [loading, setLoading] = useState(false);
 
   const handleSelectPet = (petType) => {
-    setSelectedPet({ type: petType, source: petImages[petType]?.greet });
+    setSelectedPet(petType);
   };
 
-  const handleConfirmSelection = () => {
-    if (petName && selectedPet) {
-      props.selectPet(selectedPet.type, petName);
-      props.anonAuth();
-      navigation.navigate("PetScreen");
+  const handleConfirmSelection = async () => {
+    setLoading(true);
+    const isAuthenticated = await props.anonAuth();
+    if (isAuthenticated) {
+      props.createPetStats(selectedPet, petName);
+      setTimeout(() => {
+        setLoading(false);
+        props.navigation.navigate("PetScreen");
+      }, 1000);
+    } else {
+      setLoading(false);
     }
   };
 
   return (
     <View style={styles.container}>
-      {!selectedPet && (
+      {loading ? (
+        <ActivityIndicator size="large" color="teal" />
+      ) : selectedPet === null ? (
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.carouselContainer}
         >
-          {Object.keys(petImages).map((petType, index) => (
+          {Object.keys(props.pet.petImages).map((petType) => (
             <TouchableOpacity
-              key={index}
+              key={petType}
               onPress={() => handleSelectPet(petType)}
               style={styles.carouselItem}
             >
-              <Image source={petImages[petType]?.greet} style={styles.avatar} />
+              <Image
+                source={props.pet.petImages[petType]?.greet}
+                style={styles.avatar}
+              />
               <Button
                 title={petType}
                 onPress={() => handleSelectPet(petType)}
@@ -61,25 +73,25 @@ const PetSelectionScreen = (props) => {
             </TouchableOpacity>
           ))}
         </ScrollView>
-      )}
-
-      {selectedPet && (
+      ) : (
         <View style={styles.selectionContainer}>
-          <Image source={selectedPet.source} style={styles.selectedAvatar} />
+          <Image
+            source={props.pet.petImages[selectedPet]?.greet}
+            style={styles.selectedAvatar}
+          />
           <TextInput
             placeholder="Enter Pet Name"
             value={petName}
-            onChangeText={setPetName}
+            onChangeText={(text) => setPetName(text.toUpperCase())}
             style={styles.input}
+          />
+          <Button
+            title="Confirm"
+            onPress={handleConfirmSelection}
+            disabled={!selectedPet || !petName}
           />
         </View>
       )}
-
-      <Button
-        title="Confirm"
-        onPress={handleConfirmSelection}
-        disabled={!petName}
-      />
     </View>
   );
 };
@@ -124,19 +136,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
   },
-  errorText: {
-    fontSize: 18,
-    color: "red",
-  },
-});
-
-const mapStateToProps = (state) => ({
-  petImages: state.pet.petImages,
-});
-
-const mapDispatchToProps = (dispatch) => ({
-  anonAuth: () => dispatch(anonAuth()),
-  selectPet: (petType, petName) => dispatch(selectPet(petType, petName)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(PetSelectionScreen);
