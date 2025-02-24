@@ -61,7 +61,7 @@ export const createPetStats = (petType, petName) => {
 
     axios
       .put(
-        `${baseUrl}/${userId}/petStats.json`,
+        `${baseUrl}/users/${userId}/petStats.json`,
         { petType, petName, hunger, happiness, isAlive },
         { headers: { "Content-Type": "application/json" } }
       )
@@ -82,7 +82,7 @@ export const updatePetStats = (hunger, happiness, isAlive) => {
 
     axios
       .patch(
-        `${baseUrl}/${userId}/petStats.json`,
+        `${baseUrl}/users/${userId}/petStats.json`,
         { hunger, happiness, isAlive },
         { headers: { "Content-Type": "application/json" } }
       )
@@ -96,6 +96,24 @@ export const updatePetStats = (hunger, happiness, isAlive) => {
         console.error("Error updating pet stats:", error);
       });
   };
+};
+export const fetchPetStats = () => async (dispatch, getState) => {
+  const userId = getState().auth?.localId;
+  if (!userId) return null;
+
+  try {
+    const response = await axios.get(
+      `${baseUrl}/users/${userId}/petStats.json`
+    );
+    if (response.data) {
+      return response.data;
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error("Error fetching pet stats:", error);
+    return null;
+  }
 };
 export const resetPet = () => ({
   type: actionTypes.RESET_PET,

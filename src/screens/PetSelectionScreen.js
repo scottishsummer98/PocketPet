@@ -33,17 +33,11 @@ const PetSelectionScreen = (props) => {
   };
 
   const handleConfirmSelection = async () => {
-    setLoading(true);
-    const isAuthenticated = await props.anonAuth();
-    if (isAuthenticated) {
-      props.createPetStats(selectedPet, petName);
-      setTimeout(() => {
-        setLoading(false);
-        props.navigation.navigate("PetScreen");
-      }, 1000);
-    } else {
+    props.createPetStats(selectedPet, petName);
+    setTimeout(() => {
       setLoading(false);
-    }
+      props.navigation.navigate("PetScreen");
+    }, 1000);
   };
 
   return (
