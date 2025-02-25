@@ -1,57 +1,18 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  Image,
-  Button,
-  StyleSheet,
-  ActivityIndicator,
-} from "react-native";
-import { connect } from "react-redux";
-import { anonAuth, fetchPetStats } from "../redux/actionCreators";
-const mapStateToProps = (state) => ({
-  user: state.auth,
-  pet: state.pet,
-});
+import React from "react";
+import { View, Text, Image, Button, StyleSheet } from "react-native";
 
-const mapDispatchToProps = (dispatch) => ({
-  anonAuth: () => dispatch(anonAuth()),
-  fetchPetStats: () => dispatch(fetchPetStats()),
-});
-const HomeScreen = (props) => {
-  const [loading, setLoading] = useState(false);
-  console.log(props);
-
-  const handleStartPress = async () => {
-    setLoading(true);
-    if (!props.user.idToken) {
-      const isAuthSuccessful = await props.anonAuth();
-      if (!isAuthSuccessful) {
-        setLoading(false);
-        return;
-      }
-    }
-    const petStats = await props.fetchPetStats();
-    setTimeout(() => {
-      setLoading(false);
-      props.navigation.navigate(petStats ? "PetScreen" : "PetSelectionScreen");
-    }, 1000);
-  };
-
+const HomeScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
-      {loading ? (
-        <ActivityIndicator size="large" color="teal" />
-      ) : (
-        <View>
-          <Image
-            source={require("../../assets/PocketPetLogo.png")}
-            style={styles.logo}
-          />
-          <Text style={styles.title}>Welcome to PocketPet!</Text>
-          <Button title="Start" onPress={handleStartPress} />
-        </View>
-      )}
+      <Image
+        source={require("../../assets/PocketPetLogo.png")}
+        style={styles.logo}
+      />
+      <Text style={styles.title}>Welcome to PocketPet!</Text>
+      <Button
+        title="Start"
+        onPress={() => navigation.navigate("PetSelectionScreen")}
+      />
     </View>
   );
 };
@@ -67,4 +28,4 @@ const styles = StyleSheet.create({
   title: { fontSize: 20, fontWeight: "bold", marginBottom: 20 },
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(HomeScreen);
+export default HomeScreen;

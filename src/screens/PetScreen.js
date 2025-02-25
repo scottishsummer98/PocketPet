@@ -29,6 +29,7 @@ const PetScreen = (props) => {
   );
 
   const { hunger, happiness, isAlive, petType, petName } = props.pet;
+
   useEffect(() => {
     setCurrentImage(props.pet.petImages[props.pet.petType]?.greet);
   }, [props.pet.petType]);
@@ -49,6 +50,16 @@ const PetScreen = (props) => {
   const getRandomTrickImage = () => {
     const tricks = props.pet.petImages[petType]?.tricks;
     return tricks ? tricks[Math.floor(Math.random() * tricks.length)] : null;
+  };
+
+  const handleResetPet = () => {
+    props.resetPet();
+    setTimeout(() => {
+      props.navigation.reset({
+        index: 0,
+        routes: [{ name: "HomeScreen" }],
+      });
+    }, 100); // Short delay before navigating
   };
 
   const greetPet = () => {
@@ -117,7 +128,7 @@ const PetScreen = (props) => {
 
       {!isAlive && (
         <View style={styles.restartButtonContainer}>
-          <Button color={"white"} title="Restart" onPress={props.resetPet} />
+          <Button color={"white"} title="Restart" onPress={handleResetPet} />
         </View>
       )}
     </View>
@@ -150,10 +161,6 @@ const styles = StyleSheet.create({
   },
   petInfoContainer: {
     alignItems: "center",
-  },
-  errorText: {
-    fontSize: 18,
-    color: "red",
   },
 });
 
