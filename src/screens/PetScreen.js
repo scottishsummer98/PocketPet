@@ -110,7 +110,7 @@ const PetScreen = (props) => {
 
       {isAlive && (
         <View style={styles.petInfoContainer}>
-          <Text style={styles.infoText}>Hunger: {hunger}</Text>
+          <Text style={styles.infoText}>Energy: {hunger}</Text>
           <Text style={styles.infoText}>Happiness: {happiness}</Text>
         </View>
       )}
