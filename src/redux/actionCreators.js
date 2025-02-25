@@ -76,6 +76,7 @@ export const createPetStats = (petType, petName) => {
       });
   };
 };
+
 export const updatePetStats = (hunger, happiness, isAlive) => {
   return (dispatch, getState) => {
     const userId = getState().auth?.localId;
@@ -97,24 +98,7 @@ export const updatePetStats = (hunger, happiness, isAlive) => {
       });
   };
 };
-export const fetchPetStats = () => async (dispatch, getState) => {
-  const userId = getState().auth?.localId;
-  if (!userId) return null;
 
-  try {
-    const response = await axios.get(
-      `${baseUrl}/users/${userId}/petStats.json`
-    );
-    if (response.data) {
-      return response.data;
-    } else {
-      return null;
-    }
-  } catch (error) {
-    console.error("Error fetching pet stats:", error);
-    return null;
-  }
-};
 export const resetPet = () => ({
   type: actionTypes.RESET_PET,
 });
