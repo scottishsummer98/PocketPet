@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,7 +7,9 @@ import {
   Button,
   StyleSheet,
   Alert,
+  BackHandler,
 } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { connect } from "react-redux";
 import { playSound } from "../utils/playSound";
 import { updatePetStats, resetPet } from "../redux/actionCreators";
@@ -47,6 +49,21 @@ const PetScreen = (props) => {
     }
   }, [hunger, happiness, isAlive]);
 
+  useEffect(() => {
+    props.navigation.setOptions({
+      gestureEnabled: false, // Disables swipe navigation
+    });
+  }, [props.navigation]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => true;
+      BackHandler.addEventListener("hardwareBackPress", onBackPress);
+      return () =>
+        BackHandler.removeEventListener("hardwareBackPress", onBackPress);
+    }, [])
+  );
+
   const getRandomTrickImage = () => {
     const tricks = props.pet.petImages[petType]?.tricks;
     return tricks ? tricks[Math.floor(Math.random() * tricks.length)] : null;
@@ -59,7 +76,7 @@ const PetScreen = (props) => {
         index: 0,
         routes: [{ name: "HomeScreen" }],
       });
-    }, 100); // Short delay before navigating
+    }, 100);
   };
 
   const greetPet = () => {
